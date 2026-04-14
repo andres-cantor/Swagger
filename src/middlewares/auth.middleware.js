@@ -1,28 +1,35 @@
-export const auth = (req, res, next) => {
-    const token = req.headers.authorization;
+const VALID_TOKEN = "123ABC";
 
-    if (token !== "123ABC"){
-        return res.status(403).json({message: "No autorizado"});    
+const parseCookieHeader = (cookieHeader) => {
+    if (!cookieHeader) return {};
+    return cookieHeader.split(';').reduce((cookies, part) => {
+        const [name, ...rest] = part.trim().split('=');
+        cookies[name] = decodeURIComponent(rest.join('='));
+        return cookies;
+    }, {});
+};
+
+const getTokenFromRequest = (req) => {
+    let token = req.headers.authorization || "";
+    if (typeof token === 'string' && token.toLowerCase().startsWith('bearer ')) {
+        token = token.slice(7).trim();
+    }
+    if (!token && req.headers.cookie) {
+        const cookies = parseCookieHeader(req.headers.cookie);
+        token = cookies.authToken || "";
+    }
+    return token;
+};
+
+export const auth = (req, res, next) => {
+    const token = getTokenFromRequest(req);
+    if (token !== VALID_TOKEN) {
+        return res.status(403).json({ message: "No autorizado" });
     }
     next();
 };
 
-//un middleware es un filtro antes de llegar al endpoint
-
-/*
-Get http://localost:3000/api/products
-
-POST http://localhost:300/api/products
-
-body
-{
-    "name": "Teclado",
-    "price": 100    
-}
--header
-    -API auth
-        authorzation: 123ABC <-
-*/
+// Un middleware es un filtro antes de llegar al endpoint
 
 
 

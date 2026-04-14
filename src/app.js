@@ -11,6 +11,37 @@ const app = express();
 //permite recibir JSON
 app.use(express.json());
 
+const VALID_TOKEN = "123ABC";
+
+const parseCookieHeader = (cookieHeader) => {
+    if (!cookieHeader) return {};
+    return cookieHeader.split(';').reduce((cookies, part) => {
+        const [name, ...rest] = part.trim().split('=');
+        cookies[name] = decodeURIComponent(rest.join('='));
+        return cookies;
+    }, {});
+};
+
+const getTokenFromRequest = (req) => {
+    let token = req.headers.authorization || "";
+    if (typeof token === 'string' && token.toLowerCase().startsWith('bearer ')) {
+        token = token.slice(7).trim();
+    }
+    if (!token && req.headers.cookie) {
+        const cookies = parseCookieHeader(req.headers.cookie);
+        token = cookies.authToken || "";
+    }
+    return token;
+};
+
+const requireLogin = (req, res, next) => {
+    const token = getTokenFromRequest(req);
+    if (token !== VALID_TOKEN) {
+        return res.redirect('/login');
+    }
+    next();
+};
+
 // swagger config
 const options = {
     definition: {
@@ -63,7 +94,7 @@ const swaggerSpec = swaggerJsDoc(options);
  */
 
 // Ruta raíz - Información del proyecto (HTML)
-app.get("/", (req, res) => {
+app.get("/", requireLogin, (req, res) => {
     const html = `
     <!DOCTYPE html>
     <html lang="es">
@@ -577,10 +608,6 @@ app.get("/login", (req, res) => {
                     <span class="demo-label">User:</span> user / user123
                 </div>
             </div>
-
-            <div class="back-link">
-                <a href="http://localhost:3000/">← Volver al Inicio</a>
-            </div>
         </div>
 
         <script>
@@ -618,9 +645,10 @@ app.get("/login", (req, res) => {
                     if (response.ok) {
                         showMessage('✅ Login exitoso! Token: ' + data.token, 'success');
                         
-                        // Guardar token en localStorage
+                        // Guardar token en localStorage y cookie para proteger el home
                         localStorage.setItem('authToken', data.token);
                         localStorage.setItem('username', data.user);
+                        document.cookie = 'authToken=' + data.token + '; path=/; max-age=3600';
 
                         // Limpiar formulario
                         form.reset();
@@ -661,7 +689,7 @@ app.get("/login", (req, res) => {
 });
 
 // Ruta API info - JSON
-app.get("/api/info", (req, res) => {
+app.get("/api/info", requireLogin, (req, res) => {
     res.json({
         project: "Backend1 - API REST",
         version: "1.0.0",
@@ -699,7 +727,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
 
 // Swagger UI - Documentación ejecutable
-app.use("/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
+app.use("/docs", requireLogin, swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
 export default app;
 

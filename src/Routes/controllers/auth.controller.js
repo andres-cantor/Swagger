@@ -4,7 +4,7 @@ const VALID_USERS = {
     "user": "user123"
 };
 
-const VALID_TOKEN = "ABC123";
+const VALID_TOKEN = "123ABC";
 
 // Contador de intentos fallidos (seguridad básica)
 const loginAttempts = {};

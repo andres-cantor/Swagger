@@ -11,7 +11,7 @@ const app = express();
 //permite recibir JSON
 app.use(express.json());
 
-const VALID_TOKEN = "ABC123";
+const VALID_TOKEN = "123ABC";
 
 const parseCookieHeader = (cookieHeader) => {
     if (!cookieHeader) return {};
@@ -717,7 +717,7 @@ app.get("/api/info", requireLogin, (req, res) => {
                 password: "user123"
             }
         },
-        authToken: "ABC123",
+        authToken: "123ABC",
         note: "Para acceder al login oculto, usa POST /api/auth/hidden-login con name y password"
     });
 });

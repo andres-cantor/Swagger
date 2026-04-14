@@ -1,4 +1,4 @@
-const VALID_TOKEN = "ABC123";
+const VALID_TOKEN = "123ABC";
 
 const parseCookieHeader = (cookieHeader) => {
     if (!cookieHeader) return {};

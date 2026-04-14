@@ -54,7 +54,7 @@ router.post("/hidden-login", hiddenLogin);
  *             properties:
  *               token:
  *                 type: string
- *                 example: 123ABC
+ *                 example: ABC123
  *     responses:
  *       200:
  *         description: Token válido
